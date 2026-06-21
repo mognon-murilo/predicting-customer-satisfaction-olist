@@ -182,8 +182,8 @@ story += [
     sp(12), hr(), sp(6),
     Paragraph("Trabalho Final - Data Science", subtitulo_style),
     Paragraph("Universidade de Passo Fundo - UPF", subtitulo_style),
-    sp(3), Paragraph("Autor: <b>Murilo Moreira Mognon</b>", subtitulo_style),
-    sp(3), Paragraph("Repositorio: https://github.com/mognon-murilo/Trabalho_Final_DataScience__", subtitulo_style),
+    sp(3), Paragraph("Autores: <b>Murilo Moreira Mognon e Érick Landim de Paula</b>", subtitulo_style),
+    sp(3), Paragraph("Repositorio: https://github.com/mognon-murilo/predicting-customer-satisfaction-olist.git", subtitulo_style),
     sp(3), Paragraph("2025", subtitulo_style),
     PageBreak(),
 ]
