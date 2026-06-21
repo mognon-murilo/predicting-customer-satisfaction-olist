@@ -1,0 +1,46 @@
+{
+  "Regressao Logistica": {
+    "cv_mean": {
+      "Accuracy": 0.741,
+      "F1-Score (macro)": 0.6242,
+      "Precision (macro)": 0.618,
+      "Recall (macro)": 0.6342,
+      "ROC-AUC": 0.6796
+    },
+    "test": {
+      "Accuracy": 0.7471,
+      "F1-Score (macro)": 0.629,
+      "Precision (macro)": 0.6233,
+      "Recall (macro)": 0.6376,
+      "ROC-AUC": 0.6818
+    },
+    "coef": [
+      -0.0034279106184840202,
+      -0.01981961354613304,
+      -0.026765581220388412,
+      -0.0016254793154075742,
+      0.0023574866354465485,
+      -0.005489714909344912,
+      -0.005729204509407282,
+      -0.050724416971206665,
+      -0.029557742178440094,
+      -0.01278240792453289
+    ]
+  },
+  "Naive Bayes Gaussiano": {
+    "cv_mean": {
+      "Accuracy": 0.2253,
+      "F1-Score (macro)": 0.2026,
+      "Precision (macro)": 0.5342,
+      "Recall (macro)": 0.5067,
+      "ROC-AUC": 0.641
+    },
+    "test": {
+      "Accuracy": 0.224,
+      "F1-Score (macro)": 0.2018,
+      "Precision (macro)": 0.5147,
+      "Recall (macro)": 0.503,
+      "ROC-AUC": 0.6469
+    }
+  }
+}
