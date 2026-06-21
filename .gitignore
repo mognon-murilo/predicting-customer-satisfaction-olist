@@ -1,0 +1,58 @@
+# =============================================================================
+# .gitignore — Projeto Final Data Science (Olist Customer Satisfaction)
+# =============================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Virtual Environments ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb~
+
+# --- Data (large files — commit only metadata/samples) ---
+data/raw/*.csv
+data/raw/*.zip
+data/processed/*.csv
+data/processed/*.parquet
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# --- Model artifacts ---
+models/*.pkl
+models/*.joblib
+models/*.npy
+!models/results_final.json
+!models/.gitkeep
+
+# --- Environment variables ---
+.env
+*.env
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Logs & reports ---
+*.log
+logs/
+mlruns/

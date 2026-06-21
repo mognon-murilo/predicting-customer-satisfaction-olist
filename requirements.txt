@@ -1,0 +1,34 @@
+# =============================================================================
+# requirements.txt — Projeto Final Data Science (Olist Customer Satisfaction)
+# Python 3.10+
+# Install: pip install -r requirements.txt
+# =============================================================================
+
+# --- Data manipulation ---
+pandas
+numpy
+
+# --- Machine Learning ---
+scikit-learn
+xgboost
+imbalanced-learn
+
+# --- Visualization ---
+matplotlib
+seaborn
+plotly
+
+# --- Dashboard ---
+streamlit
+
+# --- Utilities ---
+joblib
+python-dotenv
+scipy
+
+# --- Notebook ---
+jupyter
+ipykernel
+
+# --- Relatório PDF ---
+reportlab
