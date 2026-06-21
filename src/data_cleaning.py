@@ -165,7 +165,7 @@ def run_cleaning_pipeline (df :pd .DataFrame )->pd .DataFrame :
 if __name__ =="__main__":
     ensure_dirs ()
 
-    input_path =DATA_PROCESSED_DIR /"olist_analytical.parquet"
+    input_path =DATA_PROCESSED_DIR /"olist_analytical.csv"
     if not input_path .exists ():
         raise FileNotFoundError (
         f"Arquivo não encontrado: {input_path}\n"
@@ -173,11 +173,17 @@ if __name__ =="__main__":
         )
 
     logger .info ("Carregando tabela analítica de %s...",input_path )
-    df_raw =pd .read_parquet (input_path )
+    df_raw =pd .read_csv (input_path ,parse_dates =[
+    "order_purchase_timestamp",
+    "order_approved_at",
+    "order_delivered_carrier_date",
+    "order_delivered_customer_date",
+    "order_estimated_delivery_date",
+    ])
 
     df_clean =run_cleaning_pipeline (df_raw )
 
-    output_path =DATA_PROCESSED_DIR /"olist_clean.parquet"
-    df_clean .to_parquet (output_path ,index =False )
+    output_path =DATA_PROCESSED_DIR /"olist_clean.csv"
+    df_clean .to_csv (output_path ,index =False )
     logger .info ("Dataset limpo salvo em: %s",output_path )
     logger .info ("Shape final: %d linhas × %d colunas.",*df_clean .shape )

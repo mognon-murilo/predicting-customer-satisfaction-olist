@@ -53,7 +53,7 @@ def split_data (df :pd .DataFrame ,target_col :str ="target"):
 if __name__ =="__main__":
     ensure_dirs ()
 
-    clean_path =DATA_PROCESSED_DIR /"olist_clean.parquet"
+    clean_path =DATA_PROCESSED_DIR /"olist_clean.csv"
     if not clean_path .exists ():
         raise FileNotFoundError (
         f"Arquivo não encontrado: {clean_path}\n"
@@ -61,7 +61,7 @@ if __name__ =="__main__":
         )
 
     logger .info ("Carregando dataset limpo de %s...",clean_path )
-    df =pd .read_parquet (clean_path )
+    df =pd .read_csv (clean_path )
 
     nan_count =df .isna ().sum ().sum ()
     if nan_count >0 :
@@ -76,9 +76,9 @@ if __name__ =="__main__":
     test_df =X_test .copy ()
     test_df ["target"]=y_test .values 
 
-    train_df .to_parquet (DATA_PROCESSED_DIR /"train.parquet",index =False )
-    test_df .to_parquet (DATA_PROCESSED_DIR /"test.parquet",index =False )
+    train_df .to_csv (DATA_PROCESSED_DIR /"train.csv",index =False )
+    test_df .to_csv (DATA_PROCESSED_DIR /"test.csv",index =False )
 
     logger .info ("Conjuntos salvos:")
-    logger .info ("  → data/processed/train.parquet (%d linhas)",len (train_df ))
-    logger .info ("  → data/processed/test.parquet  (%d linhas)",len (test_df ))
+    logger .info ("  → data/processed/train.csv (%d linhas)",len (train_df ))
+    logger .info ("  → data/processed/test.csv  (%d linhas)",len (test_df ))

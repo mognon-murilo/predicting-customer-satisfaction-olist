@@ -28,7 +28,7 @@ python src/modeling.py
 ## 4. Iniciar o dashboard
 
 ```bash
-streamlit run dashboard/app.py
+python -m streamlit run dashboard/app.py
 ```
 
 Acesse em: **http://localhost:8501**

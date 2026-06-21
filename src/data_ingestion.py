@@ -108,6 +108,6 @@ if __name__ =="__main__":
 
     df =build_analytical_table ()
 
-    output_path =DATA_PROCESSED_DIR /"olist_analytical.parquet"
-    df .to_parquet (output_path ,index =False )
+    output_path =DATA_PROCESSED_DIR /"olist_analytical.csv"
+    df .to_csv (output_path ,index =False )
     logger .info ("Tabela salva em: %s",output_path )

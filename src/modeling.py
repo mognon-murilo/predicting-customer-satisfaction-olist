@@ -154,5 +154,75 @@ class GradientBoostingStumps :
             imp [f ]+=abs (L -R )
         return imp /(imp .sum ()+1e-12 )
 
+MODEL_FACTORY ={
+"Regressão Logística":lambda :LogisticRegression (**LR_PARAMS ),
+"Naive Bayes Gaussiano":lambda :GaussianNaiveBayes (),
+"Gradient Boosting":lambda :GradientBoostingStumps (**GB_PARAMS ),
+}
+
+def _load_xy (path ):
+    df =pd .read_csv (path ).fillna (0 )
+    y =df ["target"].astype (int ).values
+    # descarta target e colunas de texto (ex.: cidades), igual ao dashboard
+    drop_cols =df .select_dtypes ("object").columns .tolist ()+["target"]
+    feats =[c for c in df .columns if c not in drop_cols ]
+    X =df [feats ].astype (np .float32 ).values
+    return X ,y
+
+def _aggregate (cv_metrics :list )->tuple :
+    keys =cv_metrics [0 ].keys ()
+    mean ={k :round (float (np .mean ([m [k ]for m in cv_metrics ])),4 )for k in keys }
+    std ={k :round (float (np .std ([m [k ]for m in cv_metrics ])),4 )for k in keys }
+    return mean ,std
+
 def run_modeling_pipeline ():
     ensure_dirs ()
+
+    train_path =DATA_PROCESSED_DIR /"train.csv"
+    test_path =DATA_PROCESSED_DIR /"test.csv"
+    for p in (train_path ,test_path ):
+        if not p .exists ():
+            raise FileNotFoundError (
+            f"Arquivo não encontrado: {p}\n"
+            "Execute primeiro: python src/feature_engineering.py"
+            )
+
+    X_train ,y_train =_load_xy (train_path )
+    X_test ,y_test =_load_xy (test_path )
+    logger .info ("Treino: %d×%d | Teste: %d×%d",*X_train .shape ,*X_test .shape )
+
+    folds =stratified_kfold (y_train ,k =3 ,seed =42 )
+    results ={}
+
+    for name ,make in MODEL_FACTORY .items ():
+        logger .info ("=== %s ===",name )
+        t0 =time .time ()
+
+        # validação cruzada estratificada
+        cv_metrics =[]
+        for i ,(tr_idx ,va_idx )in enumerate (folds ,1 ):
+            model =make ().fit (X_train [tr_idx ],y_train [tr_idx ])
+            scores =model .predict_proba (X_train [va_idx ])
+            yhat =(scores >=0.5 ).astype (int )
+            cv_metrics .append (evaluate (y_train [va_idx ],yhat ,scores ))
+            logger .info ("  fold %d/%d concluído.",i ,len (folds ))
+        cv_mean ,cv_std =_aggregate (cv_metrics )
+
+        # treino no conjunto completo e avaliação no teste
+        model =make ().fit (X_train ,y_train )
+        scores =model .predict_proba (X_test )
+        yhat =(scores >=0.5 ).astype (int )
+        test_metrics =evaluate (y_test ,yhat ,scores )
+
+        results [name ]={"cv_mean":cv_mean ,"cv_std":cv_std ,"test":test_metrics }
+        logger .info ("  %s finalizado em %.1fs | teste: Accuracy=%.4f ROC-AUC=%.4f",
+        name ,time .time ()-t0 ,test_metrics ["Accuracy"],test_metrics ["ROC-AUC"])
+
+    output_path =MODELS_DIR /"results_final.json"
+    with open (output_path ,"w",encoding ="utf-8")as f :
+        json .dump (results ,f ,ensure_ascii =False ,indent =2 )
+    logger .info ("Resultados salvos em: %s",output_path )
+    return results
+
+if __name__ =="__main__":
+    run_modeling_pipeline ()
