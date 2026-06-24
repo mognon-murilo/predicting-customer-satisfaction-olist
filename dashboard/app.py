@@ -159,123 +159,80 @@ if aba =="🏠 Visão Geral":
     st .dataframe (pd .DataFrame (data_hyp ),use_container_width =True ,hide_index =True )
 
 elif aba =="🔍 Análise dos Dados":
-    st .title ("🔍 Análise Exploratória Interativa")
+    st .title ("🔍 Análise Exploratória — Atrasado vs. No Prazo")
+    st .markdown (
+    "Comparação **estática** entre pedidos entregues **no prazo** e **com atraso**, "
+    "evidenciando que o atraso na entrega é o principal fator de (in)satisfação do cliente. "
+    "*(A interatividade do projeto está concentrada na aba 🎯 Predição.)*"
+    )
 
-    st .sidebar .markdown ("### Filtros EDA")
-    estados_disponiveis =sorted (df ["customer_state"].dropna ().unique ())
-    estados_sel =st .sidebar .multiselect ("Estado do Cliente:",estados_disponiveis ,
-    default =estados_disponiveis [:5 ])
-    delay_range =st .sidebar .slider ("Intervalo de Atraso (dias):",
-    int (df ["delivery_delay_days"].quantile (0.01 )),
-    int (df ["delivery_delay_days"].quantile (0.99 )),(-10 ,30 ))
-    sat_filter =st .sidebar .selectbox ("Satisfação:",["Todos","Satisfeito","Insatisfeito"])
+    no_prazo =df [df ["is_late"]==0 ]
+    atrasado =df [df ["is_late"]==1 ]
 
-    df_f =df [df ["customer_state"].isin (estados_sel )].copy ()
-    df_f =df_f [df_f ["delivery_delay_days"].between (*delay_range )]
-    if sat_filter !="Todos":
-        df_f =df_f [df_f ["satisfaction"]==sat_filter ]
+    # --- Métricas resumo (estáticas) ---
+    c1 ,c2 ,c3 ,c4 =st .columns (4 )
+    c1 .metric ("Pedidos no prazo",f"{len(no_prazo):,}")
+    c2 .metric ("Pedidos atrasados",f"{len(atrasado):,}")
+    c3 .metric ("% Satisfeitos — no prazo",f"{no_prazo['target'].mean()*100:.1f}%")
+    c4 .metric ("% Satisfeitos — atrasado",f"{atrasado['target'].mean()*100:.1f}%",
+    delta =f"{(atrasado['target'].mean()-no_prazo['target'].mean())*100:.1f} pp")
 
-    st .info (f"**{len(df_f):,}** pedidos com os filtros selecionados "
-    f"| Satisfação: **{df_f['target'].mean()*100:.1f}%** | Atraso médio: **{df_f['delivery_delay_days'].mean():.1f} dias**")
+    st .markdown ("---")
 
-    tab1 ,tab2 ,tab3 =st .tabs (["📦 Entrega","💰 Financeiro","🗺️ Geográfico"])
-
-    with tab1 :
-        col1 ,col2 =st .columns (2 )
-        with col1 :
-            st .subheader ("Atraso por Satisfação (boxplot)")
-            fig ,ax =plt .subplots (figsize =(5 ,4 ))
-            df_plot =df_f [df_f ["delivery_delay_days"].between (-20 ,40 )]
-            for sat ,color in PALETTE .items ():
-                vals =df_plot [df_plot ["satisfaction"]==sat ]["delivery_delay_days"].dropna ()
-                ax .boxplot (vals ,positions =[list (PALETTE .keys ()).index (sat )],
-                patch_artist =True ,boxprops =dict (facecolor =color ,alpha =0.7 ),
-                medianprops =dict (color ="black",linewidth =2 ),widths =0.5 )
-            ax .set_xticks ([0 ,1 ]);ax .set_xticklabels (list (PALETTE .keys ()))
-            ax .axhline (0 ,color ="gray",linestyle ="--",linewidth =1 )
-            ax .set_ylabel ("Dias de Atraso")
-            st .pyplot (fig ,use_container_width =True );plt .close ()
-
-        with col2 :
-            st .subheader ("Taxa de Satisfação: Atrasado vs. No Prazo")
-            late_stats =df_f .groupby ("is_late")["target"].mean ().reset_index ()
-            late_stats ["label"]=late_stats ["is_late"].map ({0 :"No Prazo",1 :"Atrasado"})
-            fig ,ax =plt .subplots (figsize =(5 ,4 ))
-            bars =ax .bar (late_stats ["label"],late_stats ["target"]*100 ,
-            color =["#2ecc71","#e74c3c"],edgecolor ="white",width =0.5 )
-            ax .set_ylim (0 ,100 );ax .set_ylabel ("% Satisfeitos")
-            for bar ,v in zip (bars ,late_stats ["target"]*100 ):
-                ax .text (bar .get_x ()+bar .get_width ()/2 ,bar .get_height ()+1 ,
-                f"{v:.1f}%",ha ="center",fontweight ="bold")
-            st .pyplot (fig ,use_container_width =True );plt .close ()
-
-    with tab2 :
-        col1 ,col2 =st .columns (2 )
-        with col1 :
-            st .subheader ("Distribuição do Ticket (R$)")
-            fig ,ax =plt .subplots (figsize =(5 ,4 ))
-            for sat ,color in PALETTE .items ():
-                vals =df_f [df_f ["satisfaction"]==sat ]["price_total"].clip (0 ,500 )
-                ax .hist (vals ,bins =30 ,alpha =0.6 ,label =sat ,color =color ,density =True )
-            ax .set_xlabel ("Valor do Pedido (R$)");ax .set_ylabel ("Densidade");ax .legend ()
-            st .pyplot (fig ,use_container_width =True );plt .close ()
-
-        with col2 :
-            st .subheader ("Razão Frete/Preço por Satisfação")
-            fig ,ax =plt .subplots (figsize =(5 ,4 ))
-            df_fr =df_f [df_f ["freight_ratio"].between (0 ,2 )]
-            for sat ,color in PALETTE .items ():
-                vals =df_fr [df_fr ["satisfaction"]==sat ]["freight_ratio"].dropna ()
-                ax .boxplot (vals ,positions =[list (PALETTE .keys ()).index (sat )],
-                patch_artist =True ,boxprops =dict (facecolor =color ,alpha =0.7 ),
-                medianprops =dict (color ="black",linewidth =2 ),widths =0.5 )
-            ax .set_xticks ([0 ,1 ]);ax .set_xticklabels (list (PALETTE .keys ()))
-            ax .set_ylabel ("Frete / Valor do Pedido")
-            st .pyplot (fig ,use_container_width =True );plt .close ()
-
-    with tab3 :
-        st .subheader ("Taxa de Satisfação por Estado do Cliente")
-        state_stats =(df_f .groupby ("customer_state")
-        .agg (sat_rate =("target","mean"),n =("target","count"))
-        .query ("n >= 20")
-        .sort_values ("sat_rate",ascending =True )
-        .reset_index ())
-        fig ,ax =plt .subplots (figsize =(10 ,5 ))
-        bar_colors =["#e74c3c"if v <df_f ["target"].mean ()else "#2ecc71"
-        for v in state_stats ["sat_rate"]]
-        ax .barh (state_stats ["customer_state"],state_stats ["sat_rate"]*100 ,
-        color =bar_colors ,edgecolor ="white")
-        ax .axvline (df_f ["target"].mean ()*100 ,color ="gray",linestyle ="--",linewidth =1.5 )
-        ax .set_xlabel ("% Clientes Satisfeitos")
-        ax .set_title ("Linha pontilhada = média global")
+    col1 ,col2 =st .columns (2 )
+    labels =["No Prazo","Atrasado"]
+    cores =["#2ecc71","#e74c3c"]
+    with col1 :
+        st .subheader ("Taxa de Satisfação")
+        vals =[no_prazo ["target"].mean ()*100 ,atrasado ["target"].mean ()*100 ]
+        fig ,ax =plt .subplots (figsize =(5 ,4 ))
+        bars =ax .bar (labels ,vals ,color =cores ,edgecolor ="white",width =0.5 )
+        ax .set_ylim (0 ,100 );ax .set_ylabel ("% Clientes Satisfeitos")
+        for bar ,v in zip (bars ,vals ):
+            ax .text (bar .get_x ()+bar .get_width ()/2 ,v +1 ,f"{v:.1f}%",
+            ha ="center",fontweight ="bold")
         st .pyplot (fig ,use_container_width =True );plt .close ()
 
-        col1 ,col2 =st .columns (2 )
-        with col1 :
-            st .subheader ("Vendas Interestaduais vs. Locais")
-            cross =df_f .groupby ("cross_state").agg (
-            pct_sat =("target","mean"),n =("target","count")).reset_index ()
-            cross ["label"]=cross ["cross_state"].map ({0 :"Mesmo Estado",1 :"Estado Diferente"})
-            fig ,ax =plt .subplots (figsize =(4 ,3 ))
-            ax .bar (cross ["label"],cross ["pct_sat"]*100 ,
-            color =["#3498db","#9b59b6"],edgecolor ="white",width =0.5 )
-            ax .set_ylabel ("% Satisfeitos");ax .set_ylim (0 ,100 )
-            for rect ,v in zip (ax .patches ,cross ["pct_sat"]*100 ):
-                ax .text (rect .get_x ()+rect .get_width ()/2 ,rect .get_height ()+1 ,
-                f"{v:.1f}%",ha ="center",fontweight ="bold")
-            st .pyplot (fig ,use_container_width =True );plt .close ()
+    with col2 :
+        st .subheader ("Nota Média de Avaliação")
+        vals =[no_prazo ["review_score"].mean (),atrasado ["review_score"].mean ()]
+        fig ,ax =plt .subplots (figsize =(5 ,4 ))
+        bars =ax .bar (labels ,vals ,color =cores ,edgecolor ="white",width =0.5 )
+        ax .set_ylim (0 ,5 );ax .set_ylabel ("Nota média (review_score)")
+        for bar ,v in zip (bars ,vals ):
+            ax .text (bar .get_x ()+bar .get_width ()/2 ,v +0.05 ,f"{v:.2f}",
+            ha ="center",fontweight ="bold")
+        st .pyplot (fig ,use_container_width =True );plt .close ()
 
-        with col2 :
-            st .subheader ("Top 5 Categorias com Menor Satisfação")
-            cat =(df_f .dropna (subset =["product_category_name_english"])
-            .groupby ("product_category_name_english")
-            .agg (sat =("target","mean"),n =("target","count"))
-            .query ("n>=50").sort_values ("sat").head (5 ).reset_index ())
-            st .dataframe (cat [["product_category_name_english","sat","n"]]
-            .rename (columns ={"product_category_name_english":"Categoria",
-            "sat":"% Satisfeito","n":"Pedidos"})
-            .assign (**{"% Satisfeito":lambda x :(x ["% Satisfeito"]*100 ).round (1 )}),
-            use_container_width =True ,hide_index =True )
+    st .markdown ("---")
+
+    col3 ,col4 =st .columns (2 )
+    with col3 :
+        st .subheader ("Distribuição da Nota por Status de Entrega")
+        fig ,ax =plt .subplots (figsize =(5 ,4 ))
+        for grupo ,label ,color in [(no_prazo ,"No Prazo","#2ecc71"),(atrasado ,"Atrasado","#e74c3c")]:
+            ax .hist (grupo ["review_score"],bins =[0.5 ,1.5 ,2.5 ,3.5 ,4.5 ,5.5 ],
+            alpha =0.6 ,label =label ,color =color ,density =True )
+        ax .set_xlabel ("review_score");ax .set_ylabel ("Densidade")
+        ax .set_xticks ([1 ,2 ,3 ,4 ,5 ]);ax .legend ()
+        st .pyplot (fig ,use_container_width =True );plt .close ()
+
+    with col4 :
+        st .subheader ("Comparativo Resumido")
+        comp =pd .DataFrame ({
+        "Métrica":["Nº de pedidos","% do total","% satisfeitos","Nota média","% com nota ≤ 3"],
+        "No Prazo":[
+        f"{len(no_prazo):,}",f"{len(no_prazo)/len(df)*100:.1f}%",
+        f"{no_prazo['target'].mean()*100:.1f}%",f"{no_prazo['review_score'].mean():.2f}",
+        f"{(no_prazo['review_score']<=3).mean()*100:.1f}%",
+        ],
+        "Atrasado":[
+        f"{len(atrasado):,}",f"{len(atrasado)/len(df)*100:.1f}%",
+        f"{atrasado['target'].mean()*100:.1f}%",f"{atrasado['review_score'].mean():.2f}",
+        f"{(atrasado['review_score']<=3).mean()*100:.1f}%",
+        ],
+        })
+        st .dataframe (comp ,use_container_width =True ,hide_index =True )
 
 elif aba =="🤖 Modelos":
     st .title ("🤖 Comparação de Modelos de Machine Learning")
