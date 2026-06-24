@@ -1,71 +1,71 @@
 {
   "Regressão Logística": {
     "cv_mean": {
-      "Accuracy": 0.6847,
-      "F1-Score (macro)": 0.5943,
-      "Precision (macro)": 0.5922,
-      "Recall (macro)": 0.6262,
-      "ROC-AUC": 0.6665
+      "Accuracy": 0.7458,
+      "F1-Score (macro)": 0.6262,
+      "Precision (macro)": 0.6208,
+      "Recall (macro)": 0.6342,
+      "ROC-AUC": 0.6796
     },
     "cv_std": {
-      "Accuracy": 0.0027,
-      "F1-Score (macro)": 0.0032,
-      "Precision (macro)": 0.0032,
-      "Recall (macro)": 0.0054,
-      "ROC-AUC": 0.0086
+      "Accuracy": 0.0009,
+      "F1-Score (macro)": 0.0017,
+      "Precision (macro)": 0.0011,
+      "Recall (macro)": 0.003,
+      "ROC-AUC": 0.0048
     },
     "test": {
-      "Accuracy": 0.6847,
-      "F1-Score (macro)": 0.5933,
-      "Precision (macro)": 0.5911,
-      "Recall (macro)": 0.6243,
-      "ROC-AUC": 0.6674
+      "Accuracy": 0.7471,
+      "F1-Score (macro)": 0.629,
+      "Precision (macro)": 0.6233,
+      "Recall (macro)": 0.6376,
+      "ROC-AUC": 0.6818
     }
   },
   "Naive Bayes Gaussiano": {
     "cv_mean": {
-      "Accuracy": 0.2867,
-      "F1-Score (macro)": 0.2772,
-      "Precision (macro)": 0.5295,
-      "Recall (macro)": 0.521,
-      "ROC-AUC": 0.6374
+      "Accuracy": 0.2253,
+      "F1-Score (macro)": 0.2026,
+      "Precision (macro)": 0.5342,
+      "Recall (macro)": 0.5067,
+      "ROC-AUC": 0.641
     },
     "cv_std": {
-      "Accuracy": 0.0561,
-      "F1-Score (macro)": 0.063,
-      "Precision (macro)": 0.0079,
-      "Recall (macro)": 0.0161,
-      "ROC-AUC": 0.0019
+      "Accuracy": 0.0022,
+      "F1-Score (macro)": 0.0031,
+      "Precision (macro)": 0.0011,
+      "Recall (macro)": 0.0004,
+      "ROC-AUC": 0.0023
     },
     "test": {
-      "Accuracy": 0.2857,
-      "F1-Score (macro)": 0.2802,
-      "Precision (macro)": 0.5405,
-      "Recall (macro)": 0.5254,
-      "ROC-AUC": 0.644
+      "Accuracy": 0.224,
+      "F1-Score (macro)": 0.2018,
+      "Precision (macro)": 0.5147,
+      "Recall (macro)": 0.503,
+      "ROC-AUC": 0.6469
     }
   },
   "Gradient Boosting": {
     "cv_mean": {
-      "Accuracy": 0.7999,
-      "F1-Score (macro)": 0.4514,
-      "Precision (macro)": 0.8374,
-      "Recall (macro)": 0.5034,
-      "ROC-AUC": 0.6611
+      "Accuracy": 0.8008,
+      "F1-Score (macro)": 0.4582,
+      "Precision (macro)": 0.8417,
+      "Recall (macro)": 0.5066,
+      "ROC-AUC": 0.6599
     },
     "cv_std": {
-      "Accuracy": 0.0004,
-      "F1-Score (macro)": 0.003,
-      "Precision (macro)": 0.0277,
-      "Recall (macro)": 0.0013,
-      "ROC-AUC": 0.0054
+      "Accuracy": 0.0016,
+      "F1-Score (macro)": 0.0108,
+      "Precision (macro)": 0.0434,
+      "Recall (macro)": 0.0051,
+      "ROC-AUC": 0.0018
     },
     "test": {
-      "Accuracy": 0.7989,
-      "F1-Score (macro)": 0.4447,
-      "Precision (macro)": 0.8994,
-      "Recall (macro)": 0.5003,
-      "ROC-AUC": 0.6634
+      "Accuracy": 0.7993,
+      "F1-Score (macro)": 0.4485,
+      "Precision (macro)": 0.8163,
+      "Recall (macro)": 0.502,
+      "ROC-AUC": 0.6637
     }
   }
 }

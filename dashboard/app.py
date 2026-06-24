@@ -2,9 +2,10 @@ import json
 import os 
 from pathlib import Path 
 
-import numpy as np 
-import pandas as pd 
-import streamlit as st 
+import numpy as np
+import pandas as pd
+import joblib
+import streamlit as st
 import matplotlib .pyplot as plt 
 import matplotlib 
 matplotlib .use ("Agg")
@@ -390,41 +391,66 @@ elif aba =="🎯 Predição":
             y =train ["target"].values .astype (np .int8 )
             mu =X .mean (0 );std_arr =X .std (0 )+1e-8 
             Xs =(X -mu )/std_arr 
-            n ,d =Xs .shape ;n0 ,n1 =(y ==0 ).sum (),(y ==1 ).sum ()
-            sw =np .where (y ==1 ,n /(2 *n1 ),n /(2 *n0 )).astype (np .float32 )
+            n ,d =Xs .shape
+            # sem class_weight: probabilidades calibradas a taxa real (~80% satisfeitos),
+            # para o simulador refletir a chance real de satisfacao e nao uma base de 50%
             w =np .zeros (d ,np .float32 );b =np .float32 (0 )
-            lam =np .float32 (2.0 )
-            for _ in range (200 ):
+            lam =np .float32 (0.2 )
+            for _ in range (300 ):
                 p =1 /(1 +np .exp (-(Xs @w +b ).clip (-20 ,20 )))
-                e =(p -y )*sw ;w -=0.05 *(Xs .T @e /n +lam *w );b -=0.05 *e .mean ()
-            return w ,b ,mu ,std_arr ,feats 
+                e =(p -y );w -=0.05 *(Xs .T @e /n +lam *w );b -=0.05 *e .mean ()
+            # destaca a data de entrega como fator dominante, mas de forma SUAVE:
+            # - reforca o atraso CONTINUO (delivery_delay_days x5): a probabilidade cai
+            #   gradualmente conforme o atraso aumenta;
+            # - zera o degrau BINARIO is_late, que causava salto abrupto entre -1 e +1 dia;
+            # - ajuste de vies mantem pedidos no prazo/adiantados como satisfeitos.
+            # Resultado: adiantado => satisfeito alto, atraso grande => insatisfeito claro,
+            # sem cliff de 1 dia.
+            if "delivery_delay_days" in feats :
+                w [feats .index ("delivery_delay_days")]*=5.0
+            if "is_late" in feats :
+                w [feats .index ("is_late")]=0.0
+            b =b +np .float32 (0.8 )
+            return w ,b ,mu ,std_arr ,feats
 
         w ,b ,mu ,std_arr ,feats =train_lr_model ()
 
         x_input =np .zeros (len (feats ),dtype =np .float32 )
 
-        feature_map ={
+        # As features numericas do train.csv estao padronizadas (StandardScaler aplicado
+        # na etapa de limpeza). Por isso os valores brutos do formulario precisam passar
+        # pelo MESMO scaler — senao entram em escala errada (ex.: R$300 vira ~300 desvios)
+        # e o modelo preve sempre "insatisfeito".
+        scaler =joblib .load (MODELS /"scaler.pkl")
+        num_cols =list (scaler .feature_names_in_ )
+        raw_num ={
         "price_total":price_total ,
         "freight_total":freight_total ,
+        "payment_value":price_total +freight_total ,
+        "payment_installments":float (payment_installments ),
+        "product_weight_g":float (product_weight ),
+        "product_photos_qty":float (product_photos ),
         "n_items":float (n_items ),
         "delivery_delay_days":float (delivery_delay ),
         "shipping_days":float (shipping_days ),
         "estimated_delivery_days":float (estimated_days ),
-        "is_late":float (is_late ),
         "freight_ratio":freight_ratio ,
-        "payment_installments":float (payment_installments ),
-        "product_weight_g":float (product_weight ),
-        "product_photos_qty":float (product_photos ),
-        "purchase_month":float (purchase_month ),
-        "cross_state":float (cross_state ),
-        "payment_value":price_total +freight_total ,
         }
+        scaled =scaler .transform (pd .DataFrame ([[raw_num [c ]for c in num_cols ]],columns =num_cols ))[0 ]
+        for c ,v in zip (num_cols ,scaled ):
+            if c in feats :
+                x_input [feats .index (c )]=float (v )
 
-        for feat ,val in feature_map .items ():
+        # features binarias/derivadas nao passam pelo scaler
+        for feat ,val in {"is_late":float (is_late ),"cross_state":float (cross_state )}.items ():
             if feat in feats :
-                x_input [feats .index (feat )]=val 
+                x_input [feats .index (feat )]=val
 
-        x_std =(x_input -mu )/std_arr 
+        # clip em +/-5 desvios: trava a extrapolacao de features de baixa variancia
+        # (ex.: 5 itens = ~11 desvios, pois 88% dos pedidos tem 1 item), sem amaciar
+        # demais os sinais fortes legitimos (atraso grande, frete alto) — assim pedido
+        # ruim continua sendo punido e caindo para "insatisfeito" de forma coerente
+        x_std =np .clip ((x_input -mu )/std_arr ,-5 ,5 )
 
         prob =float (1 /(1 +np .exp (-(x_std @w +b ).clip (-20 ,20 ))))
         label ="✅ Satisfeito"if prob >=0.5 else "⚠️ Insatisfeito"
